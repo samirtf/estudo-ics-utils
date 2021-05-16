@@ -1,0 +1,315 @@
+---
+title: "Binge drinking"
+output: html_notebook
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(hrbrthemes)
+theme_set(theme_minimal())
+library(boot)
+library(broom)
+```
+
+```{r}
+data = read_csv(here::here("data/sat-gpa.csv"), 
+                 col_types = "nndd")
+
+glimpse(data)
+```
+
+```{r}
+data %>%
+  ggplot( aes(x=math_SAT)) +
+    geom_histogram( binwidth=7, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das notas de matemática do SAT") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+Segundo o histograma da distribuição das notas de matemática do SAT, podemos observar uma grande variabilidade. Esperava encontrar uma distribuição normal ou assimétrica; entretanto, nos deparamos com uma distribuição multimodal, com picos por volta 570 e 680, e com dados variando em sua maior parte de 550 a 718.
+
+```{r}
+data %>%
+  summarise(
+    min = min(math_SAT),
+    max = max(math_SAT),
+    mean = mean(math_SAT),
+    median = median(math_SAT),
+    quantile25 = quantile(math_SAT, .25),
+    quantile75 = quantile(math_SAT, .75), 
+    n = n()
+  )
+```
+Através da tabela acima, podemos observar que 50% dos dados pertencem ao intervalo 573 a 675, que a média e a mediana são próximas, e que os valores mínimo e máximo são 516 e 718, respectivamente. O valor 516 parece ser um valor extremo na distribuição. Não existem caudas perceptíveis na distribuição.
+
+
+
+No histograma abaixo, iremos analisar a distribuição das notas de expressão verbal do SAT. É possível observar que parece existir uma normalidade dos dados e que estão distribuídos em todo o intervalo.
+```{r}
+data %>%
+  ggplot( aes(x=verb_SAT)) +
+    geom_histogram( binwidth=7, fill="#F6B7B9", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das notas de expressão verbal do SAT") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+```{r}
+data %>%
+  summarise(
+    min = min(verb_SAT),
+    max = max(verb_SAT),
+    mean = mean(verb_SAT),
+    median = median(verb_SAT),
+    quantile25 = quantile(verb_SAT, .25),
+    quantile75 = quantile(verb_SAT, .75), 
+    n = n()
+  )
+```
+Através da tabela acima, podemos observar que 50% dos dados pertencem ao intervalo 548 a 645, que a média e a mediana são próximas, e que os valores mínimo e máximo são 480 e 732, respectivamente. As notas de expressão verbal parecem ter uma dispersão maior em relação às notas de matemática. Não existem caudas perceptíveis na distribuição.
+
+
+
+```{r}
+pivot_data = data %>%
+  select(math_SAT, verb_SAT) %>%
+  pivot_longer(c(math_SAT, verb_SAT))
+```
+
+```{r}
+pivot_data %>%
+  ggplot(aes(x=name, y=value, fill=name)) + 
+  geom_boxplot(alpha=0.6) +
+  scale_fill_manual(values=c("#69b3a2", "#F6B7B9")) +
+  geom_jitter(size = 1, alpha = .5, col="black") +
+  theme_ipsum() + 
+  theme(legend.position = "none") +
+  labs(
+    title="Boxplot: notas SAT",
+    x ="Disciplina", y = "Nota"
+  )
+```
+Na visualização de boxplot acima, podemos observar com maior clareza que a disciplina expressão verbal (verb_SAT) possui maior variabilidade do que a disciplina matemática (math_SAT), que na disciplina matemática os dados estão concentrados ligeiramente mais na porção inferior enquanto que na outra disciplina está mais próxima do centro.
+
+
+Agora, iremos utilzar o gráfico de dispersão para tentar identificar visualmente se existe alguma correlação entre as notas das duas disciplinas.
+
+```{r}
+# basic scatterplot
+data %>%
+ggplot(aes(x=math_SAT, y=verb_SAT)) + 
+  geom_point(size = 1, alpha = .8) +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
+  theme_ipsum()
+```
+Neste gráfico de dispersão acima, podemos perceber que parece existir uma correlação linear positiva entre as notas; ou seja, conforme uma aumenta, a outra aumenta também. Não significa que exista uma relação causal entre ambas as variáveis. 
+
+Através dos testes de normalidade abaixo (Shapiro-Wilk), verificamos que ambas as distribuições não são normais.
+
+```{r}
+cat("Teste de normalidade das notas de matemática: ", (shapiro.test(data$math_SAT)$p.value > 0.05))
+cat("\n")
+cat("Teste de normalidade das notas de expressão verbal: ", (shapiro.test(data$verb_SAT)$p.value > 0.05))
+```
+A seguir, realizaremos um teste de correlação linear entre as notas das disciplinas matemática e expressão verbal.
+```{r}
+cor.test(data$math_SAT, data$verb_SAT, method = "pearson")
+```
+Pelo resultado, podemos confirmar que existe uma correlação linear positiva forte (0,76 a 0,88) na amostra testada, o que poderia indicar que também haja correlação para os dados da população.
+
+
+Na próxima etapa, iremos analisar a distribuição das notas de computação no sistema GPA e depois comparar a comentar como é correlação entre o desempenho dos alunos em cada uma das disciplinas e seu desempenho nas matérias de computação do curso.
+
+```{r}
+data %>%
+  ggplot( aes(x=comp_GPA)) +
+    geom_histogram( fill="#7D7D02", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das notas de computação do GPA") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+A partir do histograma das notas de computação no sistema GPA, podemos observar que parece existir duas concentrações: uma que vai de 2,0 a aprox. 2,5 e outra de 2,5 a 4,0. Cada qual com picos próximos dos valores 2,25 e 3,25, respectivamente. A escala de notas varia de 0 a 4.0 e os dados da amostra mostram que as notas variam de 2 a 4. Em toda a amostra, podemos perceber há uma assimetria com maior concentração à direita dos dados entre 3,25 a 3,5.
+
+
+Através dos dados da tabela abaixo, podemos observar que 50% dos dados da amostra pertencem ao intervalo de notas de 2,87 a 3,49. A menor e maior notas foram 2,03 e 4,0, respectivamente. Temos a média e a mediana sendo próximas uma da outra e que seus valores estão mais próximas do lado direito da escala de 0 a 4, confirmando a observação sobre a concentração à direita.
+
+```{r}
+data %>%
+  summarise(
+    min = min(comp_GPA),
+    max = max(comp_GPA),
+    mean = mean(comp_GPA),
+    median = median(comp_GPA),
+    quantile25 = quantile(comp_GPA, .25),
+    quantile75 = quantile(comp_GPA, .75), 
+    n = n()
+  )
+```
+
+Iremos agora mostrar uma visualização de boxplot para tentarmos identificar mais algumas características da distribuição.
+
+```{r}
+data %>%
+  ggplot(aes(x="comp_GPA", y=comp_GPA)) + 
+  geom_boxplot(alpha=0.6) +
+  scale_fill_manual(values=c("#69b3a2", "#F6B7B9")) +
+  geom_jitter(size = 1, alpha = .5, col="black") +
+  theme_ipsum() + 
+  theme(legend.position = "none") +
+  labs(
+    title="Boxplot: notas de computação no sistema GPA",
+    x ="Disciplina", y = "Nota"
+  )
+```
+Com o boxplot, confirmamos as observações anteriores e podemos adicionar através de uma confirmação visual de que há uma maior variabilidade dos dados no intervalo inferior à mediana.
+
+Confirmamos também a não normalidade dos dados através do teste de normalidade Shapiro-Wilk realizado abaixo.
+```{r}
+cat("Teste de normalidade das notas de computação: ", (shapiro.test(data$comp_GPA)$p.value > 0.05))
+cat("\n")
+```
+
+Agora, iremos comparar a correlação entre cada uma das disciplinas do sistema SAT (matemática e expressão verbal) com as notas de computação do GPA.
+
+Abaixo estamos mostrando um gráfico de dispersão das notas de matemática (SAT) e computação (GPA). Parece existir uma correlação positiva entre ambas. Embora aparente existir correlação, as notas no intervalo 550 a 600
+
+```{r}
+# basic scatterplot
+data %>%
+  ggplot(aes(x=math_SAT, y=comp_GPA)) + 
+  geom_point(size = 1, alpha = .8) +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
+  theme_ipsum()
+```
+
+A seguir, realizaremos um teste de correlação linear entre as notas das disciplinas matemática e expressão verbal. Estaremos removendo um registro de nota que parece ter um valos discrepante dos demais, o que poderia prejudicar o teste de correlação.
+
+Primeiramente, realizaremos o teste de correlação entre a disciplina **matemática** e **computação**.
+```{r}
+test = data %>% filter(math_SAT > 530)
+cor.test(test$math_SAT, test$comp_GPA, method = "pearson")
+```
+Após realizarmos o teste de correlação Pearson, obtemos uma correlação linear positiva de 0,70, variando no intervalo de 0,59 a 0,79, o que interpretamos como sendo uma correlação linear positiva moderada a forte. É possível que a correlação entre essas duas variáveis seja melhor explicada através de outra função que não seja linear.
+
+
+Agora, analisaresmos a correlação entre a disciplina **expressão verbal** e **computação**.
+
+```{r}
+# basic scatterplot
+data %>%
+  ggplot(aes(x=verb_SAT, y=comp_GPA)) + 
+  geom_point(size = 1, alpha = .8) +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
+  theme_ipsum()
+```
+
+```{r}
+test = data %>% filter(math_SAT > 530)
+cor.test(test$verb_SAT, test$comp_GPA, method = "pearson")
+```
+
+Após realizarmos o teste de correlação Pearson, obtemos uma correlação linear positiva de 0,64, variando no intervalo de 0,52 a 0,74, o que interpretamos como sendo uma correlação linear positiva moderada a forte.
+
+
+***Nesta etapa, iremos comparar os dois critérios do SAT com o desempenho nas matérias de Computação***
+
+```{r}
+pivot_data_2 = data %>%
+  select(math_SAT, verb_SAT, comp_GPA) %>%
+  pivot_longer(c(math_SAT, verb_SAT, comp_GPA))
+```
+
+```{r}
+pivot_data_2 = pivot_data_2 %>%
+  mutate(value = ifelse(name %in% c("math_SAT", "verb_SAT"), (value*4/800), value))
+```
+
+
+Abaixo, temos o theta chapéu (média) da nossa amostra para realizarmos calcularmos o intervalo de confiança da diferença das notas em matemática e computação através do bootstrap. Antes, precisamos converter as notas no sistema SAT para o sistema GPA.
+
+```{r}
+comparacao1 = pivot_data_2 %>% 
+    filter(name %in% c("comp_GPA", "math_SAT"))
+
+theta_c1 <- function(d, i) {
+    agrupado = d %>% 
+        slice(i) %>% 
+        group_by(name) %>% 
+        summarise(media = mean(value))
+    b = agrupado %>% filter(name == "comp_GPA") %>% pull(media)
+    l = agrupado %>% filter(name == "math_SAT") %>% pull(media)
+    l - b
+}
+
+theta_c1(comparacao1, i = 1:NROW(comparacao1))
+
+```
+Agora, temos a tabela com o intervalo de confiança da comparação das disciplinas **matemática** e **computação**.
+```{r}
+ci1 = boot(data = comparacao1,
+           statistic = theta_c1,
+           R = 2000) %>%
+    tidy(conf.level = .95,
+         conf.method = "bca",
+         conf.int = TRUE)
+ci1
+```
+
+Faremos, analogamente, o mesmo para as disciplinas **expressão verbal** e **computação**.
+Calculamos o theta chapéu (média) da nossa amostra para realizarmos calcularmos o intervalo de confiança da diferença das notas em expressão verbal e computação através do bootstrap.
+```{r}
+comparacao2 = pivot_data_2 %>% 
+    filter(name %in% c("comp_GPA", "verb_SAT"))
+
+theta_c2 <- function(d, i) {
+    agrupado = d %>% 
+        slice(i) %>% 
+        group_by(name) %>% 
+        summarise(media = mean(value))
+    b = agrupado %>% filter(name == "comp_GPA") %>% pull(media)
+    l = agrupado %>% filter(name == "verb_SAT") %>% pull(media)
+    l - b
+}
+
+theta_c2(comparacao2, i = 1:NROW(comparacao2))
+
+```
+Agora, temos a tabela com o intervalo de confiança da comparação das disciplinas **expressão verbal** e **computação**.
+```{r}
+ci2 = boot(data = comparacao2,
+           statistic = theta_c2,
+           R = 2000) %>%
+    tidy(conf.level = .95,
+         conf.method = "bca",
+         conf.int = TRUE)
+ci2
+```
+
+```{r}
+df_ci = tibble(diferenças = character(), estatística = double(), inferior = double(), superior = double())
+df_ci = df_ci %>% add_row(diferenças = "math_SAT - comp_GPA", estatística = -0.01261905, inferior = -0.1184338, superior = 0.1012447)
+df_ci = df_ci %>% add_row(diferenças = "verb_SAT - comp_GPA", estatística = -0.135	, inferior = -0.2468861, superior = -0.01786846)
+df_ci
+```
+
+
+```{r}
+ggplot(df_ci, aes(x = reorder(diferenças, estatística), y = estatística)) + 
+    geom_point() +
+    geom_errorbar(aes(y = estatística, ymin = inferior, ymax = superior), width=0.2) +
+    coord_flip() + 
+    labs(title = "Intervalos de Confiança das diferenças das médias de desempenho\nentre 'comp_GPA' e outras alternativas", y="Diferenças médias de desempenho", x = "Pares de disciplinas")
+```
+
+Comparando-se os intervalos de confiança das correlações e os intervalos de confiança das diferenças das médias de desempenho entre as disciplinas **matemática** e **expressão verbal**, acreditamos que não existem evidências de que alunos obtenham notas melhores em computação se eles tiverem obtido notas melhores em alguma das disciplinas do SAT (matemática ou expressão verbal). Acreditamos que não há diferença de desempenho e caso exista, essa seria irrelevante.
