@@ -6,7 +6,8 @@ output: html_notebook
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-
+library(hrbrthemes)
+theme_set(theme_minimal())
 library(boot)
 library(broom)
 ```
@@ -18,3 +19,70 @@ data = read_csv(here::here("data/sat-gpa.csv"),
 glimpse(data)
 ```
 
+```{r}
+data %>%
+  ggplot( aes(x=math_SAT)) +
+    geom_histogram( binwidth=7, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das notas de matemática do SAT") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+Segundo o histograma da distribuição das notas de matemática do SAT, podemos observar uma grande variabilidade. Esperava encontrar uma distribuição normal ou assimétrica; entretanto, nos deparamos com uma distribuição multimodal, com picos por volta 570 e 680, e com dados variando em sua maior parte de 550 a 718.
+
+```{r}
+data %>%
+  summarise(
+    min = min(math_SAT),
+    max = max(math_SAT),
+    mean = mean(math_SAT),
+    median = median(math_SAT),
+    quantile25 = quantile(math_SAT, .25),
+    quantile75 = quantile(math_SAT, .75), 
+    n = n()
+  )
+```
+Através da tabela acima, podemos observar que 50% dos dados pertencem ao intervalo 573 a 675, que a média e a mediana são próximas, e que os valores mínimo e máximo são 516 e 718, respectivamente. O valor 516 parece ser um valor extremo na distribuição. Não existem caudas perceptíveis na distribuição.
+
+
+No histograma abaixo, iremos analisar a distribuição das notas de expressão verbal do SAT. É possível observar que parece existir uma normalidade dos dados e que estão distribuídos em todo o intervalo.
+```{r}
+data %>%
+  ggplot( aes(x=verb_SAT)) +
+    geom_histogram( binwidth=7, fill="#F6B7B9", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das notas de expressão verbal do SAT") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+```{r}
+data %>%
+  summarise(
+    min = min(verb_SAT),
+    max = max(verb_SAT),
+    mean = mean(verb_SAT),
+    median = median(verb_SAT),
+    quantile25 = quantile(verb_SAT, .25),
+    quantile75 = quantile(verb_SAT, .75), 
+    n = n()
+  )
+```
+Através da tabela acima, podemos observar que 50% dos dados pertencem ao intervalo 548 a 645, que a média e a mediana são próximas, e que os valores mínimo e máximo são 480 e 732, respectivamente. As notas de expressão verbal parecem ter uma dispersão maior em relação às notas de matemática. Não existem caudas perceptíveis na distribuição.
+
+
+Agora, iremos utilzar o gráfico de dispersão para tentar identificar visualmente se existe alguma correlação entre as notas das duas disciplinas.
+
+```{r}
+# basic scatterplot
+data %>%
+ggplot(aes(x=math_SAT, y=verb_SAT)) + 
+  geom_point(size = 1, alpha = .8) +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
+  theme_ipsum()
+```
+Neste gráfico de dispersão acima, podemos perceber que parece existir uma correlação linear positiva entre as notas; ou seja, conforme uma aumenta, a outra aumenta também. Não significa que exista uma relação causal entre as duas.
