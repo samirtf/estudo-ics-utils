@@ -99,7 +99,7 @@ pivot_data %>%
 Na visualização de boxplot acima, podemos observar com maior clareza que a disciplina expressão verbal (verb_SAT) possui maior variabilidade do que a disciplina matemática (math_SAT), que na disciplina matemática os dados estão concentrados ligeiramente mais na porção inferior enquanto que na outra disciplina está mais próxima do centro.
 
 
-Agora, iremos utilzar o gráfico de dispersão para tentar identificar visualmente se existe alguma correlação entre as notas das duas disciplinas.
+Agora, iremos utilizar o gráfico de dispersão para tentar identificar visualmente se existe alguma correlação entre as notas das duas disciplinas.
 
 ```{r}
 # basic scatterplot
@@ -125,7 +125,7 @@ cor.test(data$math_SAT, data$verb_SAT, method = "pearson")
 Pelo resultado, podemos confirmar que existe uma correlação linear positiva forte (0,76 a 0,88) na amostra testada, o que poderia indicar que também haja correlação para os dados da população.
 
 
-Na próxima etapa, iremos analisar a distribuição das notas de computação no sistema GPA e depois comparar a comentar como é correlação entre o desempenho dos alunos em cada uma das disciplinas e seu desempenho nas matérias de computação do curso.
+Na próxima etapa, iremos analisar a distribuição das notas de computação no sistema GPA e depois comparar a comentar como é a correlação entre o desempenho dos alunos em cada uma das disciplinas e seu desempenho nas matérias de computação do curso.
 
 ```{r}
 data %>%
@@ -139,7 +139,7 @@ data %>%
     )
 ```
 
-A partir do histograma das notas de computação no sistema GPA, podemos observar que parece existir duas concentrações: uma que vai de 2,0 a aprox. 2,5 e outra de 2,5 a 4,0. Cada qual com picos próximos dos valores 2,25 e 3,25, respectivamente. A escala de notas varia de 0 a 4.0 e os dados da amostra mostram que as notas variam de 2 a 4. Em toda a amostra, podemos perceber há uma assimetria com maior concentração à direita dos dados entre 3,25 a 3,5.
+A partir do histograma das notas de computação no sistema GPA, podemos observar que parece existir duas concentrações: uma que vai de 2,0 a aprox. 2,5 e outra de 2,5 a 4,0. Cada qual com picos próximos dos valores 2,25 e 3,25, respectivamente. A escala de notas varia de 0 a 4.0 e os dados da amostra mostram que as notas variam de 2 a 4. Em toda a amostra, podemos perceber que há uma assimetria com maior concentração à direita dos dados entre 3,25 a 3,5.
 
 
 Através dos dados da tabela abaixo, podemos observar que 50% dos dados da amostra pertencem ao intervalo de notas de 2,87 a 3,49. A menor e maior notas foram 2,03 e 4,0, respectivamente. Temos a média e a mediana sendo próximas uma da outra e que seus valores estão mais próximas do lado direito da escala de 0 a 4, confirmando a observação sobre a concentração à direita.
@@ -182,7 +182,7 @@ cat("\n")
 
 Agora, iremos comparar a correlação entre cada uma das disciplinas do sistema SAT (matemática e expressão verbal) com as notas de computação do GPA.
 
-Abaixo estamos mostrando um gráfico de dispersão das notas de matemática (SAT) e computação (GPA). Parece existir uma correlação positiva entre ambas. Embora aparente existir correlação, as notas no intervalo 550 a 600
+Abaixo estamos mostrando um gráfico de dispersão das notas de matemática (SAT) e computação (GPA). Parece existir uma correlação positiva entre ambas. Embora aparente existir correlação, as notas no intervalo 550 a 600.
 
 ```{r}
 # basic scatterplot
