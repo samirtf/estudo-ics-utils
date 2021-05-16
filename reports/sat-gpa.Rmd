@@ -1,0 +1,20 @@
+---
+title: "Binge drinking"
+output: html_notebook
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+library(boot)
+library(broom)
+```
+
+```{r}
+data = read_csv(here::here("data/sat-gpa.csv"), 
+                 col_types = "nndd")
+
+glimpse(data)
+```
+
