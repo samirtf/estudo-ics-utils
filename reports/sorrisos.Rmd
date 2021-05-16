@@ -13,11 +13,111 @@ library(broom)
 ```
 
 ```{r}
-data = read_csv(here::here("data/sorrisos.csv"), 
-                 col_types = "nndd")
+data = read_csv(here::here("data/leniency.csv"), 
+                 col_types = "cdc")
 
 glimpse(data)
 ```
+```{r}
+data %>% distinct(smile)
+```
+
+
+```{r}
+with_smile_data = data %>% filter(with_smile == "yes")
+without_smile_data = data %>% filter(with_smile == "no")
+```
+
+
+Através do histograma das leniências **com sorrisos (false, felt e miserable)**, podemos perceber que os valores de leniência estão distribuídos entre 2 e 8,5 com maior concentração em torno de 4.
+```{r}
+with_smile_data %>%
+  ggplot( aes(x=leniency)) +
+    geom_histogram(binwidth=0.5, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das leniências com sorrisos: false, felt, miserable") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+Já no histograma das leniências **sem sorriso (grupo de controle)**, podemos perceber que os valores de leniência estão distribuídos principalmente entre 2 e 6,5 com maior concentração em torno de 3 e 4.
+```{r}
+without_smile_data %>%
+  ggplot( aes(x=leniency)) +
+    geom_histogram(binwidth=0.5, fill="#F6B7B9", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das leniências sem sorriso: grupo de controle") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+Pelos histogramas acima, parece existir espaço para nos questionarmos se a presença ou não de sorriso influencia na leniência. Vamos tentar visualizar melhor para cada tipo de sorriso e grupo de controle.
+
+
+```{r}
+data %>%
+  ggplot(aes(x=leniency)) +
+    geom_histogram(binwidth=0.5, fill="#F6B7B9", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das leniências por tupo de sorriso e grupo de controle") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    ) +
+  facet_wrap(~smile)
+```
+Segundo as distribuições acima, podemos dar as seguintes considerações:
+
+- False smile: temos uma distribuição mais achatada com maior variabilidade entre o intervalo 0 a 9, com picos em 3 e 6.
+- Felt smile: distribuição assimétrica com concentração à esquerda, com uma calda longa, com picos em 3,5 e 5. Maioria das notas está entre 2,5 e 6.
+- Miserable smile: distribuição aparentemente normal com média em torno de 4,5, concentração principal entre 2,5 e 6,5. Existe uma outra concentração média no extremo direito do intervalo. É preciso investigar melhor sobre isso.
+- No smile (grupo de controle): distribuição com concentração média e com maior variabilidade em relação ao **miserable smile**, variando de 2,0 a 7,5.
+
+As distribuições me fazem pensar, ainda que não haja uma relação causal, que um **false smile** faz aumentar a variabilidade da leniência por todo o intervalo; que **miserable smile** faz gerar uma concentração em torno de leniências médias, entre, 4,5 e 5,5; que **no smile** faz gerar leniências mais baixas; e que **felt smile** faz gerar uma concentração maior em leniências entre intervalos maiores (2,0 e 6,5), entretanto com maior variabilidade.
+
+
+
+```{r}
+data %>%
+  ggplot(aes(x=smile, y=leniency, fill=smile)) + 
+  geom_boxplot(alpha=0.6) +
+  scale_fill_manual(values=c("#C1E1E2", "#F1EFDA", "#D1E2B8", "#BBBCC2")) +
+  geom_jitter(size = 1, alpha = .5, col="black") +
+  theme_ipsum() + 
+  theme(legend.position = "none") +
+  coord_flip() +
+  labs(
+    title="Boxplot: leniências por sorrisos ou grupo de controle",
+    x ="Tipos de sorriso ou grupo de controle", y = "Leniência"
+  )
+```
+Através dos boxplots acima, podemos perceber que o grupo de controle possui uma mediana inferior às leniências de imagens com sorrisos. Percebemos também que o **miserable smile** apresentou uma variabilidade menor que o do **grupo de controle**; e que os grupos **felt smile** e **false smile** apresentaram maiores variabilidades em relação ao **grupo de controle** e ao **miserable smile**. Não podemos confirmar, mas nossas hipóteses são que alguns tipos de sorrisos geram maior incerteza na hora dos usuários julgarem uma pessoa através de imagens com sorrisos e que geram leniências maiores.
+
+
+Na próxima etapa, investigaremos as correlações de leniência com grupo de controle e com grupo de sorrisos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 data %>%
