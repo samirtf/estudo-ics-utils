@@ -192,6 +192,8 @@ Avaliando o intervalo de diferenças das médias de leniência entre os tipos de
 
 Considero que, a partir das observações dos limites inferiores, imagens com **false smile** obtiverem médias de leniência **relevantemente superiores** em relação ao grupo de controle e em relação aos outros tipos de sorrisos (no smile e felt smile). As diferenças médias de leniência para tipos de sorriso **no smile** e **felt smile** com o grupo de controle foram, no mínimo, pequenas ou irrelevantes.
 
+Diante da análise, podemos chegar às seguintes conclusões: ter uma pessoa sorrindo na foto pode causar uma mudança positiva na suavidade julgamento das pessoas em geral. Para o tipo de sorriso **false smile**, o efeito é relevante. O sorriso do tipo false smile possui efeito maior e relevante em relação aos demais, ainda que haja intersecções em seus intervalos .
+
 Uma boa ideia para trabalhos futuros seria aplicar outras melhorias à imagem da pessoa julgada, como corte de cabelo, remoção dos óculos de grau, barba feita, filtro de coloração da imagem e roupas que possam passar confiança. Talvez a análise de mudanças isoladas ou combinadas possam trazer achados interessantes.
 
 
