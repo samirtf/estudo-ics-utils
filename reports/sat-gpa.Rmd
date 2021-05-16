@@ -179,3 +179,137 @@ Confirmamos também a não normalidade dos dados através do teste de normalidad
 cat("Teste de normalidade das notas de computação: ", (shapiro.test(data$comp_GPA)$p.value > 0.05))
 cat("\n")
 ```
+
+Agora, iremos comparar a correlação entre cada uma das disciplinas do sistema SAT (matemática e expressão verbal) com as notas de computação do GPA.
+
+Abaixo estamos mostrando um gráfico de dispersão das notas de matemática (SAT) e computação (GPA). Parece existir uma correlação positiva entre ambas. Embora aparente existir correlação, as notas no intervalo 550 a 600
+
+```{r}
+# basic scatterplot
+data %>%
+  ggplot(aes(x=math_SAT, y=comp_GPA)) + 
+  geom_point(size = 1, alpha = .8) +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
+  theme_ipsum()
+```
+
+A seguir, realizaremos um teste de correlação linear entre as notas das disciplinas matemática e expressão verbal. Estaremos removendo um registro de nota que parece ter um valos discrepante dos demais, o que poderia prejudicar o teste de correlação.
+
+Primeiramente, realizaremos o teste de correlação entre a disciplina **matemática** e **computação**.
+```{r}
+test = data %>% filter(math_SAT > 530)
+cor.test(test$math_SAT, test$comp_GPA, method = "pearson")
+```
+Após realizarmos o teste de correlação Pearson, obtemos uma correlação linear positiva de 0,70, variando no intervalo de 0,59 a 0,79, o que interpretamos como sendo uma correlação linear positiva moderada a forte. É possível que a correlação entre essas duas variáveis seja melhor explicada através de outra função que não seja linear.
+
+
+Agora, analisaresmos a correlação entre a disciplina **expressão verbal** e **computação**.
+
+```{r}
+# basic scatterplot
+data %>%
+  ggplot(aes(x=verb_SAT, y=comp_GPA)) + 
+  geom_point(size = 1, alpha = .8) +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
+  theme_ipsum()
+```
+
+```{r}
+test = data %>% filter(math_SAT > 530)
+cor.test(test$verb_SAT, test$comp_GPA, method = "pearson")
+```
+
+Após realizarmos o teste de correlação Pearson, obtemos uma correlação linear positiva de 0,64, variando no intervalo de 0,52 a 0,74, o que interpretamos como sendo uma correlação linear positiva moderada a forte.
+
+
+***Nesta etapa, iremos comparar os dois critérios do SAT com o desempenho nas matérias de Computação***
+
+```{r}
+pivot_data_2 = data %>%
+  select(math_SAT, verb_SAT, comp_GPA) %>%
+  pivot_longer(c(math_SAT, verb_SAT, comp_GPA))
+```
+
+```{r}
+pivot_data_2 = pivot_data_2 %>%
+  mutate(value = ifelse(name %in% c("math_SAT", "verb_SAT"), (value*4/800), value))
+```
+
+
+Abaixo, temos o theta chapéu (média) da nossa amostra para realizarmos calcularmos o intervalo de confiança da diferença das notas em matemática e computação através do bootstrap. Antes, precisamos converter as notas no sistema SAT para o sistema GPA.
+
+```{r}
+comparacao1 = pivot_data_2 %>% 
+    filter(name %in% c("comp_GPA", "math_SAT"))
+
+theta_c1 <- function(d, i) {
+    agrupado = d %>% 
+        slice(i) %>% 
+        group_by(name) %>% 
+        summarise(media = mean(value))
+    b = agrupado %>% filter(name == "comp_GPA") %>% pull(media)
+    l = agrupado %>% filter(name == "math_SAT") %>% pull(media)
+    l - b
+}
+
+theta_c1(comparacao1, i = 1:NROW(comparacao1))
+
+```
+Agora, temos a tabela com o intervalo de confiança da comparação das disciplinas **matemática** e **computação**.
+```{r}
+ci1 = boot(data = comparacao1,
+           statistic = theta_c1,
+           R = 2000) %>%
+    tidy(conf.level = .95,
+         conf.method = "bca",
+         conf.int = TRUE)
+ci1
+```
+
+Faremos, analogamente, o mesmo para as disciplinas **expressão verbal** e **computação**.
+Calculamos o theta chapéu (média) da nossa amostra para realizarmos calcularmos o intervalo de confiança da diferença das notas em expressão verbal e computação através do bootstrap.
+```{r}
+comparacao2 = pivot_data_2 %>% 
+    filter(name %in% c("comp_GPA", "verb_SAT"))
+
+theta_c2 <- function(d, i) {
+    agrupado = d %>% 
+        slice(i) %>% 
+        group_by(name) %>% 
+        summarise(media = mean(value))
+    b = agrupado %>% filter(name == "comp_GPA") %>% pull(media)
+    l = agrupado %>% filter(name == "verb_SAT") %>% pull(media)
+    l - b
+}
+
+theta_c2(comparacao2, i = 1:NROW(comparacao2))
+
+```
+Agora, temos a tabela com o intervalo de confiança da comparação das disciplinas **expressão verbal** e **computação**.
+```{r}
+ci2 = boot(data = comparacao2,
+           statistic = theta_c2,
+           R = 2000) %>%
+    tidy(conf.level = .95,
+         conf.method = "bca",
+         conf.int = TRUE)
+ci2
+```
+
+```{r}
+df_ci = tibble(diferenças = character(), estatística = double(), inferior = double(), superior = double())
+df_ci = df_ci %>% add_row(diferenças = "math_SAT - comp_GPA", estatística = -0.01261905, inferior = -0.1184338, superior = 0.1012447)
+df_ci = df_ci %>% add_row(diferenças = "verb_SAT - comp_GPA", estatística = -0.135	, inferior = -0.2468861, superior = -0.01786846)
+df_ci
+```
+
+
+```{r}
+ggplot(df_ci, aes(x = reorder(diferenças, estatística), y = estatística)) + 
+    geom_point() +
+    geom_errorbar(aes(y = estatística, ymin = inferior, ymax = superior), width=0.2) +
+    coord_flip() + 
+    labs(title = "Intervalos de Confiança das diferenças das médias de desempenho\nentre 'comp_GPA' e outras alternativas", y="Diferenças médias de desempenho", x = "Pares de disciplinas")
+```
+
+Comparando-se os intervalos de confiança das correlações e os intervalos de confiança das diferenças das médias de desempenho entre as disciplinas **matemática** e **expressão verbal**, acreditamos que não existem evidências de que alunos obtenham notas melhores em computação se eles tiverem obtido notas melhores em alguma das disciplinas do SAT (matemática ou expressão verbal). Acreditamos que não há diferença de desempenho e caso exista, essa seria irrelevante.
