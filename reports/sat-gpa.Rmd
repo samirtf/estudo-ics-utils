@@ -47,6 +47,7 @@ data %>%
 Através da tabela acima, podemos observar que 50% dos dados pertencem ao intervalo 573 a 675, que a média e a mediana são próximas, e que os valores mínimo e máximo são 516 e 718, respectivamente. O valor 516 parece ser um valor extremo na distribuição. Não existem caudas perceptíveis na distribuição.
 
 
+
 No histograma abaixo, iremos analisar a distribuição das notas de expressão verbal do SAT. É possível observar que parece existir uma normalidade dos dados e que estão distribuídos em todo o intervalo.
 ```{r}
 data %>%
@@ -75,6 +76,29 @@ data %>%
 Através da tabela acima, podemos observar que 50% dos dados pertencem ao intervalo 548 a 645, que a média e a mediana são próximas, e que os valores mínimo e máximo são 480 e 732, respectivamente. As notas de expressão verbal parecem ter uma dispersão maior em relação às notas de matemática. Não existem caudas perceptíveis na distribuição.
 
 
+
+```{r}
+pivot_data = data %>%
+  select(math_SAT, verb_SAT) %>%
+  pivot_longer(c(math_SAT, verb_SAT))
+```
+
+```{r}
+pivot_data %>%
+  ggplot(aes(x=name, y=value, fill=name)) + 
+  geom_boxplot(alpha=0.6) +
+  scale_fill_manual(values=c("#69b3a2", "#F6B7B9")) +
+  geom_jitter(size = 1, alpha = .5, col="black") +
+  theme_ipsum() + 
+  theme(legend.position = "none") +
+  labs(
+    title="Boxplot: notas SAT",
+    x ="Disciplina", y = "Nota"
+  )
+```
+Na visualização de boxplot acima, podemos observar com maior clareza que a disciplina expressão verbal (verb_SAT) possui maior variabilidade do que a disciplina matemática (math_SAT), que na disciplina matemática os dados estão concentrados ligeiramente mais na porção inferior enquanto que na outra disciplina está mais próxima do centro.
+
+
 Agora, iremos utilzar o gráfico de dispersão para tentar identificar visualmente se existe alguma correlação entre as notas das duas disciplinas.
 
 ```{r}
@@ -85,4 +109,73 @@ ggplot(aes(x=math_SAT, y=verb_SAT)) +
   geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE) +
   theme_ipsum()
 ```
-Neste gráfico de dispersão acima, podemos perceber que parece existir uma correlação linear positiva entre as notas; ou seja, conforme uma aumenta, a outra aumenta também. Não significa que exista uma relação causal entre as duas.
+Neste gráfico de dispersão acima, podemos perceber que parece existir uma correlação linear positiva entre as notas; ou seja, conforme uma aumenta, a outra aumenta também. Não significa que exista uma relação causal entre ambas as variáveis. 
+
+Através dos testes de normalidade abaixo (Shapiro-Wilk), verificamos que ambas as distribuições não são normais.
+
+```{r}
+cat("Teste de normalidade das notas de matemática: ", (shapiro.test(data$math_SAT)$p.value > 0.05))
+cat("\n")
+cat("Teste de normalidade das notas de expressão verbal: ", (shapiro.test(data$verb_SAT)$p.value > 0.05))
+```
+A seguir, realizaremos um teste de correlação linear entre as notas das disciplinas matemática e expressão verbal.
+```{r}
+cor.test(data$math_SAT, data$verb_SAT, method = "pearson")
+```
+Pelo resultado, podemos confirmar que existe uma correlação linear positiva forte (0,76 a 0,88) na amostra testada, o que poderia indicar que também haja correlação para os dados da população.
+
+
+Na próxima etapa, iremos analisar a distribuição das notas de computação no sistema GPA e depois comparar a comentar como é correlação entre o desempenho dos alunos em cada uma das disciplinas e seu desempenho nas matérias de computação do curso.
+
+```{r}
+data %>%
+  ggplot( aes(x=comp_GPA)) +
+    geom_histogram( fill="#7D7D02", color="#e9ecef", alpha=0.9) +
+    geom_rug() +
+    ggtitle("Histograma: distribuição das notas de computação do GPA") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+A partir do histograma das notas de computação no sistema GPA, podemos observar que parece existir duas concentrações: uma que vai de 2,0 a aprox. 2,5 e outra de 2,5 a 4,0. Cada qual com picos próximos dos valores 2,25 e 3,25, respectivamente. A escala de notas varia de 0 a 4.0 e os dados da amostra mostram que as notas variam de 2 a 4. Em toda a amostra, podemos perceber há uma assimetria com maior concentração à direita dos dados entre 3,25 a 3,5.
+
+
+Através dos dados da tabela abaixo, podemos observar que 50% dos dados da amostra pertencem ao intervalo de notas de 2,87 a 3,49. A menor e maior notas foram 2,03 e 4,0, respectivamente. Temos a média e a mediana sendo próximas uma da outra e que seus valores estão mais próximas do lado direito da escala de 0 a 4, confirmando a observação sobre a concentração à direita.
+
+```{r}
+data %>%
+  summarise(
+    min = min(comp_GPA),
+    max = max(comp_GPA),
+    mean = mean(comp_GPA),
+    median = median(comp_GPA),
+    quantile25 = quantile(comp_GPA, .25),
+    quantile75 = quantile(comp_GPA, .75), 
+    n = n()
+  )
+```
+
+Iremos agora mostrar uma visualização de boxplot para tentarmos identificar mais algumas características da distribuição.
+
+```{r}
+data %>%
+  ggplot(aes(x="comp_GPA", y=comp_GPA)) + 
+  geom_boxplot(alpha=0.6) +
+  scale_fill_manual(values=c("#69b3a2", "#F6B7B9")) +
+  geom_jitter(size = 1, alpha = .5, col="black") +
+  theme_ipsum() + 
+  theme(legend.position = "none") +
+  labs(
+    title="Boxplot: notas de computação no sistema GPA",
+    x ="Disciplina", y = "Nota"
+  )
+```
+Com o boxplot, confirmamos as observações anteriores e podemos adicionar através de uma confirmação visual de que há uma maior variabilidade dos dados no intervalo inferior à mediana.
+
+Confirmamos também a não normalidade dos dados através do teste de normalidade Shapiro-Wilk realizado abaixo.
+```{r}
+cat("Teste de normalidade das notas de computação: ", (shapiro.test(data$comp_GPA)$p.value > 0.05))
+cat("\n")
+```
