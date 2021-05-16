@@ -1,5 +1,5 @@
 ---
-title: "Binge drinking"
+title: "1: Relação entre SAT e GPA"
 output: html_notebook
 ---
 

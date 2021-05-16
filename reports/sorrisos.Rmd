@@ -1,5 +1,5 @@
 ---
-title: "Binge drinking"
+title: "2: Um experimento com sorrisos"
 output: html_notebook
 ---
 
@@ -13,7 +13,7 @@ library(broom)
 ```
 
 ```{r}
-data = read_csv(here::here("data/sat-gpa.csv"), 
+data = read_csv(here::here("data/sorrisos.csv"), 
                  col_types = "nndd")
 
 glimpse(data)
