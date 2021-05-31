@@ -112,7 +112,8 @@ theta_media_1 <- function(d, i) {
     l = agrupado %>% filter(smile == "false smile") %>% pull(media)
     l - b
 }
-theta(comparacao_media_1, i = 1:NROW(comparacao_media_1))
+
+theta_media_1(comparacao_media_1, i = 1:NROW(comparacao_media_1))
 
 ci_media_1 = boot(data = comparacao_media_1,
            statistic = theta_media_1,
@@ -135,7 +136,7 @@ theta_media_2 <- function(d, i) {
     l = agrupado %>% filter(smile == "felt smile") %>% pull(media)
     l - b
 }
-theta(comparacao_media_2, i = 1:NROW(comparacao_media_2))
+theta_media_2(comparacao_media_2, i = 1:NROW(comparacao_media_2))
 
 ci_media_2 = boot(data = comparacao_media_2,
            statistic = theta_media_2,
@@ -159,7 +160,7 @@ theta_media_3 <- function(d, i) {
     l = agrupado %>% filter(smile == "miserable smile") %>% pull(media)
     l - b
 }
-theta(comparacao_media_3, i = 1:NROW(comparacao_media_3))
+theta_media_3(comparacao_media_3, i = 1:NROW(comparacao_media_3))
 
 ci_media_3 = boot(data = comparacao_media_3,
            statistic = theta_media_3,
@@ -197,7 +198,46 @@ Diante da análise, podemos chegar às seguintes conclusões: ter uma pessoa sor
 Uma boa ideia para trabalhos futuros seria aplicar outras melhorias à imagem da pessoa julgada, como corte de cabelo, remoção dos óculos de grau, barba feita, filtro de coloração da imagem e roupas que possam passar confiança. Talvez a análise de mudanças isoladas ou combinadas possam trazer achados interessantes.
 
 
+***Teste de Hipóteses***
+Diferença de medianas: Teste de Wilcoxon (ou Mann-Whithney)
+"false smile" - "no smile (control)"
+```{r}
+count(comparacao_media_1)
+wilcox.test(
+  comparacao_media_1 %>% filter(smile == "false smile") %>% pull(leniency),
+  comparacao_media_1 %>% filter(smile == "no smile (control)") %>% pull(leniency)
+) %>% tidy()
+```
 
+Diferença de medianas: Teste de Wilcoxon (ou Mann-Whithney)
+"felt smile" - "no smile (control)"
+```{r}
+count(comparacao_media_2)
+wilcox.test(
+  comparacao_media_2 %>% filter(smile == "felt smile") %>% pull(leniency),
+  comparacao_media_2 %>% filter(smile == "no smile (control)") %>% pull(leniency)
+) %>% tidy()
+```
 
+Diferença de medianas: Teste de Wilcoxon (ou Mann-Whithney)
+"miserable smile" - "no smile (control)"
+```{r}
+count(comparacao_media_3)
+wilcox.test(
+  comparacao_media_3 %>% filter(smile == "miserable smile") %>% pull(leniency),
+  comparacao_media_3 %>% filter(smile == "no smile (control)") %>% pull(leniency)
+) %>% tidy()
+```
 
+```{r}
+comparacao_geral = data %>% 
+    filter(smile %in% c("no smile (control)", "false smile", "felt smile", "miserable smile"))
+
+count(comparacao_geral)
+
+wilcox.test(
+  comparacao_geral %>% filter(smile %in% c("false smile", "felt smile", "miserable smile")) %>% pull(leniency),
+  comparacao_geral %>% filter(smile == "no smile (control)") %>% pull(leniency)
+) %>% tidy()
+```
 

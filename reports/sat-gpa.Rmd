@@ -313,3 +313,39 @@ ggplot(df_ci, aes(x = reorder(diferenças, estatística), y = estatística)) +
 ```
 
 Comparando-se os intervalos de confiança das correlações e os intervalos de confiança das diferenças das médias de desempenho entre as disciplinas **matemática** e **expressão verbal**, acreditamos que não existem evidências de que alunos obtenham notas melhores em computação se eles tiverem obtido notas melhores em alguma das disciplinas do SAT (matemática ou expressão verbal). Acreditamos que não há diferença de desempenho e caso exista, essa seria irrelevante.
+
+
+```{r}
+math_comp_cor_test = cor.test(data$math_SAT, data$comp_GPA)
+math_comp_cor_test
+```
+```{r}
+math_comp_cor_test$p.value < 0.05
+```
+
+
+```{r}
+
+verb_comp_cor_test = cor.test(data$verb_SAT, data$comp_GPA)
+verb_comp_cor_test
+```
+```{r}
+verb_comp_cor_test$p.value < 0.05
+```
+
+```{r}
+convert <- function(x) (x*4/800)
+transformed_data = data %>%
+mutate_at(c("math_SAT", "verb_SAT"), convert)
+```
+
+```{r}
+cor.test(transformed_data$math_SAT, transformed_data$comp_GPA)
+```
+```{r}
+cor.test(transformed_data$verb_SAT, transformed_data$comp_GPA)
+```
+
+
+
+
